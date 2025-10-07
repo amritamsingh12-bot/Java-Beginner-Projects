@@ -1,51 +1,86 @@
 package Calculator;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Calculator {
 
-	public static void main(String[] args) {
-		// result will be in float form
-		float res = 0;
+    // --- Core operations (unit-testable) ---
+    public static double add(double a, double b) { return a + b; }
+    public static double subtract(double a, double b) { return a - b; }
+    public static double multiply(double a, double b) { return a * b; }
+    public static double divide(double a, double b) {
+        if (b == 0.0) throw new IllegalArgumentException("Cannot divide by zero");
+        return a / b;
+    }
 
-		Scanner userInput = new Scanner(System.in);
-		System.out.println("Enter the 1st number : ");
-		float num1 = userInput.nextFloat();
+    // --- CLI App ---
+    public static void main(String[] args) {
+        try (Scanner in = new Scanner(System.in)) {
+            System.out.println("=== Java Calculator ===");
 
-		System.out.println("Enter the 2nd number :");
-		float num2 = userInput.nextFloat();
+            while (true) {
+                printMenu();
+                int choice = readInt(in, "Choose option (1-5): ");
 
-		// print basic mathematical operators
-		System.out.println("Enter the operation :");
-		System.out.println("1. +");
-		System.out.println("2. -");
-		System.out.println("3. *");
-		System.out.println("4. /");
+                if (choice == 5) {
+                    System.out.println("Goodbye!");
+                    break;
+                }
 
-		// using the scanner class to take input which will only be in int form
-		int optr = userInput.nextInt();
+                double a = readDouble(in, "Enter first number: ");
+                double b = readDouble(in, "Enter second number: ");
 
-		// using control statement to print the operator statements and also handle some
-		// errors statements
-		if (optr > 4) {
-			System.out.println("Error");
-		} else {
-			if (optr == 1) {
-				res = num1 + num2;
-			} else if (optr == 2) {
-				res = num1 - num2;
-			} else if (optr == 3) {
-				res = num1 * num2;
-			} else {
-				res = num1 / num2;
+                try {
+                    double result = switch (choice) {
+                        case 1 -> add(a, b);
+                        case 2 -> subtract(a, b);
+                        case 3 -> multiply(a, b);
+                        case 4 -> divide(a, b);
+                        default -> {
+                            System.out.println("Invalid option. Try again.");
+                            yield Double.NaN;
+                        }
+                    };
+                    if (!Double.isNaN(result)) {
+                        System.out.printf("Result: %.6f%n%n", result);
+                    }
+                } catch (IllegalArgumentException ex) {
+                    System.out.println("Error: " + ex.getMessage() + "\n");
+                }
+            }
+        }
+    }
 
-			}
-			System.out.println("The result is " + res);
-		}
+    private static void printMenu() {
+        System.out.println("1) +  Add");
+        System.out.println("2) -  Subtract");
+        System.out.println("3) *  Multiply");
+        System.out.println("4) /  Divide");
+        System.out.println("5) Exit");
+    }
 
-		// close scanner to avoid data leak
-		userInput.close();
+    private static int readInt(Scanner in, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                return in.nextInt();
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid integer.");
+                in.nextLine(); // clear invalid token
+            }
+        }
+    }
 
-	}
-
+    private static double readDouble(Scanner in, String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            try {
+                return in.nextDouble();
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid number (e.g., 12 or 12.5).");
+                in.nextLine(); // clear invalid token
+            }
+        }
+    }
 }
